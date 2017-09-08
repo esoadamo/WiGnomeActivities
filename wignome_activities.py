@@ -1,4 +1,5 @@
 from pyautogui import keyDown, press, keyUp
+import pyautogui
 from ctypes import windll, Structure, c_long, byref
 from time import sleep
 from json import dump, load
@@ -55,29 +56,29 @@ def edit_settings() -> None:
     :return: None
     """
     areas = list()
-    try:
-        print('Changing settings for checked areas')
-        print('Press ^C at any time to finish creating new rectagles')
-        while True:
-            rect_data = []
-            input('Move mouse to the upper left corner of area and press enter ')
-            rect_data.append(get_mouse_pos())
-            input('Now the lower right corner ')
-            rect_data.append(get_mouse_pos())
-            areas.append(rect_data)
-            print('Rectangle coordinates: ', rect_data, '\n')
-    except KeyboardInterrupt:
-        if input('\nDo you want to save settings? Y/n ').lower() == 'n':
-            return
-        # Save settings
-        for area in areas:
-            for i, subarea in enumerate(area):
-                area[i] = [subarea.x, subarea.y]
-        if not exists(get_parent_dir(FILE_CONFIG)):
-            makedirs(get_parent_dir(FILE_CONFIG))
-        with open(FILE_CONFIG, 'wt') as f:
-            dump(areas, f)
-        print('Saved')
+    print('Changing settings for checked areas')
+    print('To exit type "done" and press enter')
+    while True:
+        rect_data = []
+        if 'done' in input('Move mouse to the upper left corner of area and press enter ').lower():
+            break
+        rect_data.append(get_mouse_pos())
+        if 'done' in input('Now the lower right corner ').lower():
+            break
+        rect_data.append(get_mouse_pos())
+        areas.append(rect_data)
+        print('Rectangle coordinates: ', rect_data, '\n')
+    if input('\nDo you want to save settings? Y/n ').lower() == 'n':
+        return
+    # Save settings
+    for area in areas:
+        for i, subarea in enumerate(area):
+            area[i] = [subarea.x, subarea.y]
+    if not exists(get_parent_dir(FILE_CONFIG)):
+        makedirs(get_parent_dir(FILE_CONFIG))
+    with open(FILE_CONFIG, 'wt') as f:
+        dump(areas, f)
+    print('Saved')
 
 
 def main_loop() -> None:
@@ -85,6 +86,7 @@ def main_loop() -> None:
     Checks if mouse enters one of the areas and if so toggles activities shown status
     :return: None
     """
+    pyautogui.FAILSAFE = False
     if not exists(FILE_CONFIG):
         print('Error: config file on "%s" does not exist' % FILE_CONFIG)
         print('Create it by running this script with -c parameter')
